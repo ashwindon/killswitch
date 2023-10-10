@@ -1,0 +1,11 @@
+{
+  "name": "killswitch",
+  "version": "1.0.0",
+  "description": "project for the mankind",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "ashwin",
+  "license": "ISC"
+}

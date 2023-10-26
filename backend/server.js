@@ -4,6 +4,7 @@ const PORT = 3001;
 const cors = require('cors');
 const User = require('./models/user_data');
 const connectDatabase  = require('./config/database_connection');
+const { generateUniqueSalt, generateHashedPassword, comparePassword } = require('./utils/passwordHelpers');
 const jwt = require('jsonwebtoken');
 const qs = require('qs'); // This is a library for querystring encoding, install with npm if you haven't
 const axios = require('axios');
@@ -41,79 +42,46 @@ app.use(session({
 }));
 
 
+app.post('/login', async (req, res) => {
+    try {   
+        const { email, password } = req.body;
+        
+        const user = await User.findOne({ email });
+        
+        if (!user) {
+            return res.status(400).send('User not found');
+        }
+        
+        // Check if the password matches
+        if (comparePassword(user.password, user.salt, password)) {
+            req.session.userName = user.userName;
+            req.session.userRole = user.userRole;
+            req.session.save();
+        
+            return res.json({
+              success: true,
+              username: user.userName,
+              role: user.userRole
+            });
+        } else {
+            return res.status(400).send('Invalid password');
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Internal server error');
+    }
+});
 
 
 app.get('/', (req, res) => {
     res.send('Backend Server is running!');
 });
 
-app.post('/login', async (req, res) => {
-    try {
-
-        // Prepare the data payload using querystring encoding
-        let data = qs.stringify({
-            'grant_type': 'password',
-            'client_id': `${process.env.CLIENT_ID}`,
-            'client_secret': `${process.env.CLIENT_SECRET}`,
-            'username': req.body.username,
-            'password': req.body.password
-        });
-
-        // Define the request configuration
-        let config = {
-            method: 'post',
-            maxBodyLength: Infinity,
-            url: `http://localhost:8080/realms/${process.env.REALM}/protocol/openid-connect/token`,
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'},
-            data: data
-        };
-
-        // Make the request
-        const response = await axios.request(config);
-
-        // Set the token in the session
-        req.session.token = response.data.access_token;
-        req.session.refreshToken = response.data.refresh_token;
-
-        // Decode the JWT token to extract username and roles
-        const decodedToken = jwt.decode(response.data.access_token);
-        const username = decodedToken.preferred_username; // 'preferred_username' is typically used by Keycloak
-        const roles = decodedToken.realm_access ? decodedToken.realm_access.roles : []; // this assumes realm roles. Adjust if using client roles.
-        req.session.userName = username;
-       
-        req.session.save();
-        // Send the response
-        res.send({ username, roles });
-
-    } catch (err) {
-        console.error(err); // It's a good practice to log the error for debugging purposes
-        res.status(400).send('Authentication failed');
-    }
-});
-
-
-
 
 app.get('/logout', async (req, res) => {
     try {
-
-        const formData = qs.stringify({
-            client_id: `${process.env.CLIENT_ID}`,
-            client_secret: `${process.env.CLIENT_SECRET}`,
-            refresh_token: req.session.refreshToken
-        });
-
-        const headers = {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        };
-
-        await axios.post(`http://localhost:8080/realms/${process.env.REALM}/protocol/openid-connect/logout`, formData, { headers });
-
-        // Destroy the session on your server after logging out from Keycloak
         req.session.destroy();
         res.send('Logged out successfully');
-
     } catch (err) {
         // Handle any errors that occur during logout
         console.error("Error logging out from Keycloak:", err);
@@ -124,8 +92,8 @@ app.get('/logout', async (req, res) => {
 
 app.get('/userDetails', async (req, res) => {
    
-     const userName = req.session.userName;
-
+    const userName = req.session.userName;
+    const role = req.session.role; 
     if (!userName) {
         return res.status(401).send({ error: 'User is not authenticated' });
     }
@@ -136,17 +104,51 @@ app.get('/userDetails', async (req, res) => {
         if (!user) {
             return res.status(404).send({ error: 'User not found' });
         }
-
+        res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.header('Pragma', 'no-cache');
+        res.header('Expires', '0');
         // Send relevant fields back to the client
         res.send({
-            username: user.username,
+            username: user.userName,
             email: user.email,
+            role: user.userRole,
             profileImage: user.profileImage
         });
 
     } catch (err) {
         console.error('Error fetching user details:', err);
         res.status(500).send({ error: 'Internal Server Error' });
+    }
+});
+
+app.post('/signup', async (req, res) => {
+    try {
+        const { email, username, password } = req.body;
+
+        // Check if email already exists in the database
+        const existingUser = await User.findOne({ email: email });
+        if (existingUser) {
+            return res.status(400).send('Email is already in use');
+        }
+
+        // Generate salt and hashed password
+        const salt = generateUniqueSalt();
+        const hashedPassword = generateHashedPassword(password, salt);
+        
+        const newUser = new User({
+            email: email,
+            userName: username,
+            password: hashedPassword,  // Store the hashed password
+            salt: salt,
+            userRole: "admin"
+        });
+
+        await newUser.save();
+        res.json({ success: true });
+    
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Internal server error');
     }
 });
 

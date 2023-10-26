@@ -7,7 +7,10 @@ const userSchema = new mongoose.Schema({
         unique: true
     },
     userName: String,  // Synchronized with Keycloak or can be omitted if not needed.
+    salt:String,
+    password:String,
     profileImage: String,
+    userRole:String,
     followers: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user_data'

@@ -7,6 +7,15 @@ function ProfilePage() {
 
     useEffect(() => {
         console.log("ProfilePage component rendered : useEffect");
+        window.document.addEventListener("prerender", function() {
+            // Disable caching
+            document.head.appendChild(
+                Object.assign(document.createElement("meta"), {
+                    name: "cache-control",
+                    content: "no-cache, no-store, must-revalidate"
+                })
+            );
+        });
         const fetchUserData = async () => {
             try {
                 // Calling the userDetails API
@@ -38,7 +47,7 @@ function ProfilePage() {
         try {
             // Call the logout endpoint on your server
             await axios.get('http://localhost:3001/logout', { withCredentials: true });
-
+            //history.replace("/login");
             
             // If successful, redirect to the login page
             window.location.href = "/login";

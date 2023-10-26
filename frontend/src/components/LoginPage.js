@@ -11,7 +11,7 @@ const LoginPage = () => {
         e.preventDefault();
         try {
             const response = await axios.post('http://localhost:3001/login', {
-                username: email,
+                email: email,
                 password: password
             }, {
                 headers: { 'Content-Type': 'application/json' },
@@ -19,9 +19,9 @@ const LoginPage = () => {
             });
 
             // In axios, the status code 200 and 299 indicate success
-            if (response.status >= 200 && response.status < 300) {
+            if (response.status >= 200) {
                 console.log('successful login');
-                sessionStorage.setItem('username', response.data.username);
+                //sessionStorage.setItem('username', response.data.username);
                 // sessionStorage.setItem('roles', JSON.stringify(response.data.roles));
                 window.location.href = "/profile";
             } else {

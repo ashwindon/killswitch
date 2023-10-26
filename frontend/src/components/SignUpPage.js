@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import './SignUpPage.css';
 import './LoginPage.css';
+import axios from 'axios';
 import { Link } from 'react-router-dom';
 const SignUpPage = () => {
     const [name, setName] = useState('');
@@ -9,13 +10,34 @@ const SignUpPage = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (password !== confirmPassword) {
             alert('Passwords do not match!');
             return;
         }
-        // Handle the sign-up logic here
+    
+        try {
+            const response = await axios.post('http://localhost:3001/signup', {                
+                email: email,
+                username: name,
+                password: password
+            });
+    
+            if (response.data.success) {
+                alert('Signup successful! You can now log in.');
+                // Redirect to login page or homepage, or handle as needed
+                // For example:
+                window.location.href = '/login';
+            } else {
+                // Handle server validation messages or other errors
+                alert('Signup failed. Please try again.');
+            }
+        } catch (error) {
+            console.error('There was an error signing up:', error);
+            // Handle error (e.g., display a notification or alert to the user)
+            alert('There was an error signing up. Please try again later.');
+        }
     };
 
     return (

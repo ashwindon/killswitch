@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-console.log("ProfilePage component rendered : MAIN");
-
+import './ProfilePage.css';
+import kilswitchLogo from '../assets/logo.png';
 function ProfilePage() {
     const [userData, setUserData] = useState(null);
 
@@ -60,15 +60,59 @@ function ProfilePage() {
     if (!userData) {
         return <div>Loading...</div>;
     }
-
     return (
-        <div>
-            <h1>Welcome, {userData.username}</h1>
-            <p>Email: {userData.email}</p>
-            <img src={userData.profileImage} alt="User Profile" width="200"/>
-            <button onClick={handleLogout}>Logout</button>
+        <div className="container">
+            <header className="header">
+                <img src={kilswitchLogo} alt="Kilswitch Logo" className="logo" />
+                <h2>KILLSWITCH</h2>
+            </header>
+            <div className="body">
+                <nav className="sidebar">
+                    <a href="/dashboard">Dashboard</a><br/>
+                    <a href="/settings">Settings</a><br/>
+                    <button onClick={handleLogout}>Logout</button>
+                    {/* Add other navigation links as needed */}
+                </nav>
+                <div className="profile">
+                    <img src={userData.profileImage} alt="User Profile" className="profileImage" />
+                    <p><strong>UserName:</strong> {userData.username}</p>
+                    <p><strong>Email:</strong> {userData.email}</p>
+                    <p><strong>Followers:</strong> {userData.followers}</p>
+                    <p><strong>Following:</strong> {userData.following}</p>
+                </div>
+            </div>
         </div>
     );
+    // return (
+    //     <div style={styles.container}>
+    //         <header style={styles.header}>
+    //             <img src={kilswitchLogo} alt="Kilswitch Logo" style={styles.logo} />
+    //         </header>
+    //         <div style={styles.body}>
+    //             <nav style={styles.sidebar}>
+    //                 <a href="/dashboard">Dashboard</a>
+    //                 <a href="/settings">Settings</a>
+    //                 <button onClick={handleLogout}>Logout</button>
+    //                 {/* Add other navigation links as needed */}
+    //             </nav>
+    //             <div style={styles.profile}>
+    //                 <img src={user.profileImage} alt="User Profile" style={styles.profileImage} />
+    //                 <p><strong>UserName:</strong> {userData.username}</p>
+    //                 <p><strong>Email:</strong> {userData.email}</p>
+    //                 <p><strong>Followers:</strong> {userData.followers}</p>
+    //                 <p><strong>Following:</strong> {userData.following}</p>
+    //             </div>
+    //         </div>
+    //     </div>
+    // );
+    // return (
+    //     <div>
+    //         <h1>Welcome, {userData.username}</h1>
+    //         <p>Email: {userData.email}</p>
+    //         <img src={userData.profileImage} alt="User Profile" width="200"/>
+            
+    //     </div>
+    // );
 }
 
 export default ProfilePage;

@@ -112,7 +112,9 @@ app.get('/userDetails', async (req, res) => {
             username: user.userName,
             email: user.email,
             role: user.userRole,
-            profileImage: user.profileImage
+            profileImage: user.profileImage,
+            followers: user.followers,
+            following: user.following
         });
 
     } catch (err) {

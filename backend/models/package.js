@@ -7,13 +7,28 @@ const packageSchema = new mongoose.Schema({
         required: true
     },
     content: {
+        type: [String],
+        required: true
+    },
+    title: {
+        type: String,
+        required: true
+    },
+    description: {
         type: String,
         required: true
     },
     scheduledPublishDate: {
         type: Date,
     },
-    // ... other fields as needed
+    publishDate: {
+        type: Date,
+        default: Date.now
+    },
+    isPublished: {
+        type: Boolean,
+        default: false
+    },
 });
 
 module.exports = mongoose.model('package', packageSchema);
